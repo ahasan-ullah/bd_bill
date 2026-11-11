@@ -1,0 +1,156 @@
+name: Build & Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Publish as a GitHub Release?'
+        required: true
+        type: boolean
+        default: true
+      release_tag:
+        description: 'Custom tag for release (e.g. v1.0.0, optional)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    name: Build Android (APK & AAB)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK (Release)
+        run: flutter build apk --release
+
+      - name: Build App Bundle (Release)
+        run: flutter build appbundle --release
+
+      - name: Stage Android artifacts
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk dist/bd_bill-android-release.apk
+          cp build/app/outputs/bundle/release/app-release.aab dist/bd_bill-android-bundle.aab
+
+      - name: Upload Android Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build
+          path: dist/*
+          retention-days: 14
+
+  build-ios:
+    name: Build iOS (Unsigned IPA & Runner.app)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS (Release, No Codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Package iOS IPA & App Zip
+        run: |
+          mkdir -p dist/Payload
+          cp -r build/ios/iphoneos/Runner.app dist/Payload/
+          cd dist
+          zip -r -q bd_bill-ios-unsigned.ipa Payload
+          rm -rf Payload
+          cd ../build/ios/iphoneos
+          zip -r -q ../../../dist/bd_bill-ios-Runner.app.zip Runner.app
+          cd ../../..
+
+      - name: Upload iOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: dist/*
+          retention-days: 14
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-android, build-ios]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release == true)
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Determine Release Tag
+        id: tag_info
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ -n "${{ inputs.release_tag }}" ]; then
+              TAG_NAME="${{ inputs.release_tag }}"
+            else
+              TAG_NAME="v1.0.${{ github.run_number }}"
+            fi
+          else
+            TAG_NAME="${{ github.ref_name }}"
+          fi
+          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag_info.outputs.tag }}
+          name: "BD Bill Release ${{ steps.tag_info.outputs.tag }}"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## BD Bill Release Assets
+
+            ### 📱 Android
+            - **`bd_bill-android-release.apk`**: Direct installation file for Android phones and tablets.
+            - **`bd_bill-android-bundle.aab`**: Google Play Store upload bundle.
+
+            ### 🍎 iOS (No Mac or Apple Developer Account Required)
+            - **`bd_bill-ios-unsigned.ipa`**: Sideloadable iOS application package.
+              > **How to install on iPhone/iPad:**
+              > 1. Download **[Sideloadly](https://sideloadly.io/)** (Free on Windows/Mac) or **[AltStore](https://altstore.io/)**.
+              > 2. Connect your iPhone to your PC via USB or Wi-Fi.
+              > 3. Drag and drop `bd_bill-ios-unsigned.ipa` into Sideloadly and enter your free personal Apple ID to sign and install it directly onto your device.
+            - **`bd_bill-ios-Runner.app.zip`**: Compressed iOS application bundle for simulator or macOS app inspection.
+          files: |
+            release-assets/bd_bill-android-release.apk
+            release-assets/bd_bill-android-bundle.aab
+            release-assets/bd_bill-ios-unsigned.ipa
+            release-assets/bd_bill-ios-Runner.app.zip

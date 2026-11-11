@@ -13,7 +13,8 @@
   <a href="https://dart.dev"><img src="https://img.shields.io/badge/Dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white" alt="Dart" /></a>
   <a href="https://riverpod.dev"><img src="https://img.shields.io/badge/State-Riverpod-blueviolet?style=for-the-badge" alt="Riverpod" /></a>
   <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-2ea44f?style=for-the-badge" alt="Platforms" />
-  <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License" />
+  <a href="https://github.com/ahasan-ullah/bd_bill/actions/workflows/build-and-release.yml"><img src="https://img.shields.io/github/actions/workflow/status/ahasan-ullah/bd_bill/build-and-release.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white" alt="Build Status" /></a>
+  <a href="https://github.com/ahasan-ullah/bd_bill/releases"><img src="https://img.shields.io/github/v/release/ahasan-ullah/bd_bill?include_prereleases&style=for-the-badge&label=Release&color=orange" alt="Latest Release" /></a>
 </p>
 
 <p align="center">
@@ -31,6 +32,26 @@
 - 🔄 **Reactive State Management** — Powered by Flutter Riverpod for seamless, lag-free UI state updates.
 - 📱 **Clean Material Design 3** — Intuitive, elegant interface tailored for both Android and iOS devices.
 - 📴 **100% Offline-First** — Performs all computations locally without requiring an active internet connection.
+
+---
+
+## 📥 Downloads & Installation
+
+Pre-built binaries for both **Android** and **iOS** are automatically built via GitHub Actions and published under [**Releases**](https://github.com/ahasan-ullah/bd_bill/releases).
+
+### 📱 Android
+1. Go to the [Latest Release](https://github.com/ahasan-ullah/bd_bill/releases) page.
+2. Download `bd_bill-android-release.apk`.
+3. Open the file on your device and tap **Install**.
+
+### 🍎 iOS (No Mac or Paid Apple Developer Account Needed)
+You can install the app on any iPhone or iPad from Windows, Linux, or Mac using free sideloading tools:
+1. Download `bd_bill-ios-unsigned.ipa` from the [Latest Release](https://github.com/ahasan-ullah/bd_bill/releases).
+2. Download and install **[Sideloadly](https://sideloadly.io/)** (Free on Windows & Mac) or **[AltStore](https://altstore.io/)**.
+3. Connect your iPhone to your computer via USB or Wi-Fi.
+4. Drag and drop `bd_bill-ios-unsigned.ipa` into Sideloadly.
+5. Enter your free personal Apple ID to sign and install the app onto your iPhone.
+6. On your iPhone, go to **Settings > General > VPN & Device Management**, tap your Apple ID profile, and tap **Trust**.
 
 ---
 
@@ -95,7 +116,7 @@ lib/
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started (Developers)
 
 ### Prerequisites
 
@@ -104,7 +125,7 @@ lib/
 - Android Studio / VS Code with Flutter extension
 - An Android/iOS device or emulator
 
-### Installation
+### Local Build
 
 1. **Clone the repository:**
    ```bash
