@@ -1,5 +1,5 @@
 name: bd_bill
-description: "A new Flutter project."
+description: "Smart Bangladesh electricity bill calculator and PDF invoice generator based on official BERC tariff slabs."
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
